@@ -189,12 +189,12 @@ export const Configuracoes010: React.FC<Configuracoes010Props> = ({
     }, 1500);
   };
 
-  // Lista de Usuários com Persistência (Apenas Dono e Caixa)
+  // Lista de Usuários com Persistência (Apenas ADM e Caixa)
   const defaultUsuarios: UsuarioPDV[] = [
     {
-      id: 'u-dono',
-      nome: 'Dono',
-      username: 'admin',
+      id: 'u-adm',
+      nome: 'ADM',
+      username: 'adm',
       role: 'Dono',
       isOwner: true,
       cadastradoEm: '10/01/2026',
@@ -233,7 +233,12 @@ export const Configuracoes010: React.FC<Configuracoes010Props> = ({
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          const filtered = parsed.filter((u: any) => u.username !== 'leticia' && u.nome?.toLowerCase() !== 'leticia');
+          const filtered = parsed
+            .filter((u: any) => u.username !== 'leticia' && u.nome?.toLowerCase() !== 'leticia')
+            .map((u: any) => {
+              const isOwn = u.isOwner || u.role === 'Dono' || u.username === 'admin' || u.username === 'adm' || u.nome === 'Dono' || u.nome === 'ADM';
+              return isOwn ? { ...u, nome: 'ADM', username: 'adm' } : u;
+            });
           if (filtered.length > 0) return filtered;
         }
       }

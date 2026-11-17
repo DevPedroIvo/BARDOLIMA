@@ -29,10 +29,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
     setLoading(true);
     setError('');
 
-    // Se o usuário digitou apenas 'dono' ou 'caixa', adiciona o domínio padrão @distribuidora.com
-    const targetEmail = inputClean.includes('@') ? inputClean : `${inputClean}@distribuidora.com`;
+    // Se o usuário digitou apenas 'adm', 'admin', 'dono' ou 'caixa', adiciona o domínio padrão @distribuidora.com
+    const userLower = inputClean.toLowerCase().replace('@distribuidora.com', '');
+    const isAdminInput = userLower === 'adm' || userLower === 'admin' || userLower === 'dono';
+    const targetEmail = inputClean.includes('@') 
+      ? inputClean 
+      : (isAdminInput ? 'adm@distribuidora.com' : `${userLower}@distribuidora.com`);
     // Se a senha tiver 4 dígitos, mapeia para a senha de 6 dígitos no Supabase Auth
-    const targetPassword = password.length === 4 ? (password === '2026' ? '202600' : (password === '1234' ? '123400' : `${password}00`)) : password;
+    const targetPassword = password.length === 4 ? (password === '9799' ? '979900' : (password === '1234' ? '123400' : `${password}00`)) : password;
 
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({
@@ -42,17 +46,16 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
 
       if (authError) {
         // Fallback resiliente para novo projeto Supabase caso os usuários ainda não tenham sido criados no Auth
-        const userLower = inputClean.toLowerCase().replace('@distribuidora.com', '');
-        const isDonoFallback = (userLower === 'dono' || userLower === 'admin') && (password === '2026' || password === '202600');
+        const isAdmFallback = isAdminInput && (password === '9799' || password === '979900');
         const isCaixaFallback = userLower === 'caixa' && (password === '1234' || password === '123400');
 
-        if (isDonoFallback || isCaixaFallback) {
-          const displayName = isDonoFallback ? 'Dono' : 'Caixa';
+        if (isAdmFallback || isCaixaFallback) {
+          const displayName = isAdmFallback ? 'ADM' : 'Caixa';
           const session: UserSession = {
             username: displayName,
             email: targetEmail,
-            userId: `local-${userLower}`,
-            role: isDonoFallback ? 'Administrador' : 'Operador',
+            userId: `local-${isAdmFallback ? 'adm' : 'caixa'}`,
+            role: isAdmFallback ? 'Administrador' : 'Operador',
             isAuthenticated: true
           };
           onLogin(session);
@@ -78,13 +81,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ onLogin }) => {
         const isOwnerOrAdmin = 
           metadata.role === 'Administrador' || 
           metadata.role === 'Dono' || 
+          emailLower.includes('adm') || 
           emailLower.includes('dono') || 
           emailLower.includes('admin');
 
         const displayName = 
           metadata.nome || 
           metadata.username || 
-          (emailLower.includes('dono') ? 'Dono' : emailLower.includes('caixa') ? 'Caixa' : user.email?.split('@')[0]) || 
+          (isOwnerOrAdmin ? 'ADM' : emailLower.includes('caixa') ? 'Caixa' : user.email?.split('@')[0]) || 
           'Usuário';
 
         const session: UserSession = {

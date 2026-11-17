@@ -69,6 +69,7 @@ export interface Venda010 {
   subtotal: number;
   desconto_valor: number;
   desconto_porcentagem: number;
+  taxa_deslocamento?: number;
   total: number;
   forma_pagamento: string; // Ex: "Pix", "Múltiplo (Dinheiro + Pix)", "Cartão de Crédito 3x"
   pagamentos?: PagamentoItem[];

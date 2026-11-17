@@ -292,13 +292,14 @@ export function App() {
           const isOwnerOrAdmin = 
             metadata.role === 'Administrador' || 
             metadata.role === 'Dono' || 
+            emailLower.includes('adm') || 
             emailLower.includes('dono') || 
             emailLower.includes('admin');
 
           const displayName = 
             metadata.nome || 
             metadata.username || 
-            (emailLower.includes('dono') ? 'Dono' : emailLower.includes('caixa') ? 'Caixa' : user.email?.split('@')[0]) || 
+            (isOwnerOrAdmin ? 'ADM' : emailLower.includes('caixa') ? 'Caixa' : user.email?.split('@')[0]) || 
             'Usuário';
 
           const validSession: UserSession = {
@@ -326,13 +327,14 @@ export function App() {
         const isOwnerOrAdmin = 
           metadata.role === 'Administrador' || 
           metadata.role === 'Dono' || 
+          emailLower.includes('adm') || 
           emailLower.includes('dono') || 
           emailLower.includes('admin');
 
         const displayName = 
           metadata.nome || 
           metadata.username || 
-          (emailLower.includes('dono') ? 'Dono' : emailLower.includes('caixa') ? 'Caixa' : user.email?.split('@')[0]) || 
+          (isOwnerOrAdmin ? 'ADM' : emailLower.includes('caixa') ? 'Caixa' : user.email?.split('@')[0]) || 
           'Usuário';
 
         const validSession: UserSession = {

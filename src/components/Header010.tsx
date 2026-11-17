@@ -172,10 +172,10 @@ export const Header010: React.FC<Header010Props> = ({
     }
   };
 
-  // Buscar lista de usuários cadastrados (Dono e Caixa)
+  // Buscar lista de usuários cadastrados (ADM e Caixa)
   const getUsuariosCadastrados = () => {
     let list = [
-      { id: 'u-dono', nome: 'Dono', username: 'admin', role: 'Dono', pin: '2026', isOwner: true },
+      { id: 'u-adm', nome: 'ADM', username: 'adm', role: 'Dono', pin: '9799', isOwner: true },
       { id: 'u-caixa', nome: 'Caixa', username: 'caixa', role: 'Funcionário', pin: '1234', isOwner: false }
     ];
 
@@ -186,10 +186,15 @@ export const Header010: React.FC<Header010Props> = ({
         if (Array.isArray(parsed) && parsed.length > 0) {
           const filtered = parsed.filter((u: any) => u.username !== 'leticia' && u.nome?.toLowerCase() !== 'leticia');
           if (filtered.length > 0) {
-            list = filtered.map((u: any) => ({
-              ...u,
-              pin: u.isOwner || u.role === 'Dono' ? '2026' : '1234'
-            }));
+            list = filtered.map((u: any) => {
+              const isOwn = u.isOwner || u.role === 'Dono' || u.username === 'admin' || u.username === 'adm' || u.nome === 'Dono' || u.nome === 'ADM';
+              return {
+                ...u,
+                nome: isOwn ? 'ADM' : u.nome,
+                username: isOwn ? 'adm' : u.username,
+                pin: isOwn ? '9799' : '1234'
+              };
+            });
           }
         }
       }
@@ -208,10 +213,10 @@ export const Header010: React.FC<Header010Props> = ({
     e.preventDefault();
     if (!selectedUser) return;
 
-    const isOwner = selectedUser.isOwner || selectedUser.role === 'Dono' || selectedUser.username === 'admin' || selectedUser.nome === 'Dono';
-    const targetEmail = isOwner ? 'dono@distribuidora.com' : 'caixa@distribuidora.com';
+    const isOwner = selectedUser.isOwner || selectedUser.role === 'Dono' || selectedUser.username === 'admin' || selectedUser.username === 'adm' || selectedUser.nome === 'Dono' || selectedUser.nome === 'ADM';
+    const targetEmail = isOwner ? 'adm@distribuidora.com' : 'caixa@distribuidora.com';
     const targetPassword = pinInput.length === 4 
-      ? (isOwner ? '202600' : '123400') 
+      ? (isOwner ? '979900' : '123400') 
       : pinInput;
 
     try {
@@ -222,14 +227,14 @@ export const Header010: React.FC<Header010Props> = ({
 
       if (authError) {
         // Fallback resiliente para novo Supabase caso usuários ainda não estejam no Auth
-        const validPinDono = isOwner && (pinInput === '2026' || pinInput === '202600');
+        const validPinAdm = isOwner && (pinInput === '9799' || pinInput === '979900');
         const validPinCaixa = !isOwner && (pinInput === '1234' || pinInput === '123400');
 
-        if (validPinDono || validPinCaixa) {
+        if (validPinAdm || validPinCaixa) {
           const newSession: UserSession = {
-            username: isOwner ? 'Dono' : (selectedUser.nome || 'Caixa'),
+            username: isOwner ? 'ADM' : (selectedUser.nome || 'Caixa'),
             email: targetEmail,
-            userId: `local-${selectedUser.username || 'user'}`,
+            userId: `local-${isOwner ? 'adm' : (selectedUser.username || 'caixa')}`,
             role: isOwner ? 'Administrador' : 'Operador',
             isAuthenticated: true
           };
@@ -254,10 +259,10 @@ export const Header010: React.FC<Header010Props> = ({
       if (data?.user) {
         const user = data.user;
         const metadata = user.user_metadata || {};
-        const isOwnerOrAdmin = metadata.role === 'Administrador' || metadata.role === 'Dono' || targetEmail.includes('dono');
+        const isOwnerOrAdmin = metadata.role === 'Administrador' || metadata.role === 'Dono' || targetEmail.includes('adm') || targetEmail.includes('dono');
 
         const newSession: UserSession = {
-          username: isOwnerOrAdmin ? 'Dono' : 'Caixa',
+          username: isOwnerOrAdmin ? 'ADM' : 'Caixa',
           email: user.email,
           userId: user.id,
           role: isOwnerOrAdmin ? 'Administrador' : 'Operador',

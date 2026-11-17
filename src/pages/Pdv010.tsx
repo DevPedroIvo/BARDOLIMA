@@ -98,9 +98,11 @@ export const Pdv010: React.FC<Pdv010Props> = ({
 
   const vendasHojeTotal = vendasHoje.reduce((acc, v) => acc + (v.total || 0), 0);
   
-  // Descontos
+  // Descontos & Taxa de Deslocamento
+  const [abaAjusteCarrinho, setAbaAjusteCarrinho] = useState<'desconto' | 'deslocamento'>('deslocamento');
   const [tipoDesconto, setTipoDesconto] = useState<'valor' | 'porcentagem'>('valor');
   const [descontoInput, setDescontoInput] = useState<number>(0);
+  const [taxaDeslocamentoInput, setTaxaDeslocamentoInput] = useState<number>(0);
 
   // Modal Leitor de Câmera
   const [showCameraModal, setShowCameraModal] = useState(false);
@@ -158,7 +160,9 @@ export const Pdv010: React.FC<Pdv010Props> = ({
     ? round2((descontoValor / subtotal) * 100)
     : descontoInput;
 
-  const total = round2(Math.max(0, subtotal - descontoValor));
+  const taxaDeslocamentoValor = round2(Math.max(0, taxaDeslocamentoInput || 0));
+
+  const total = round2(Math.max(0, subtotal - descontoValor + taxaDeslocamentoValor));
 
   // Cálculos de Pagamento Múltiplo Otimizado
   const totalPagoMultiplo = round2(valPix + valDinheiro + valDebito + valCredito);
@@ -347,6 +351,20 @@ export const Pdv010: React.FC<Pdv010Props> = ({
     }
 
     const numeroVendaGerado = Math.floor(1000 + Math.random() * 9000);
+    const produtosVendaFinal: ItemCarrinho010[] = taxaDeslocamentoValor > 0
+      ? [
+          ...carrinho,
+          {
+            produto_id: 'taxa-deslocamento',
+            nome: 'Taxa de Deslocamento',
+            codigo: 'TAXA',
+            quantidade: 1,
+            preco_unitario: taxaDeslocamentoValor,
+            subtotal: taxaDeslocamentoValor
+          }
+        ]
+      : carrinho;
+
     const novaVenda: Venda010 = {
       id: `v-${Date.now()}`,
       numero_venda: numeroVendaGerado,
@@ -355,10 +373,11 @@ export const Pdv010: React.FC<Pdv010Props> = ({
       cliente_nome: comandaEmFinalizacao?.cliente_nome || 'Cliente Balcão',
       comanda_id: comandaEmFinalizacao?.id,
       comanda_numero: comandaEmFinalizacao?.numero_conta,
-      produtos: carrinho,
+      produtos: produtosVendaFinal,
       subtotal,
       desconto_valor: descontoValor,
       desconto_porcentagem: descontoPorcentagem,
+      taxa_deslocamento: taxaDeslocamentoValor > 0 ? taxaDeslocamentoValor : undefined,
       total,
       forma_pagamento: textoFormaPagamento,
       pagamentos: pagamentosFinais,
@@ -377,6 +396,7 @@ export const Pdv010: React.FC<Pdv010Props> = ({
     // Reset Carrinho & Inputs
     setCarrinho([]);
     setDescontoInput(0);
+    setTaxaDeslocamentoInput(0);
     setSearchTerm('');
     setValPix(0);
     setValDinheiro(0);
@@ -709,36 +729,124 @@ export const Pdv010: React.FC<Pdv010Props> = ({
             )}
           </div>
 
-          {/* Opções de Desconto R$ / % */}
+          {/* Abas de Ajuste: Taxa de Deslocamento e Desconto */}
           <div className="space-y-2 pt-2 border-t border-zinc-800 text-xs">
-            <div className="flex items-center justify-between bg-zinc-950 px-2.5 py-1.5 rounded-xl border border-zinc-800">
-              <span className="font-bold text-zinc-400 text-xs">Desconto:</span>
-              <div className="flex items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => setTipoDesconto(tipoDesconto === 'valor' ? 'porcentagem' : 'valor')}
-                  className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-orange-400 font-bold rounded-lg shrink-0 text-xs"
-                >
-                  {tipoDesconto === 'valor' ? 'R$' : '%'}
-                </button>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  value={descontoInput || ''}
-                  onChange={(e) => setDescontoInput(parseFloat(e.target.value) || 0)}
-                  placeholder="0"
-                  className="w-20 sm:w-24 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-1 text-xs text-zinc-200 text-right focus:border-orange-500 outline-none"
-                />
-              </div>
+            <div className="grid grid-cols-2 gap-1.5 bg-zinc-950 p-1 rounded-xl border border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setAbaAjusteCarrinho('deslocamento')}
+                className={`py-1.5 px-2 rounded-lg font-black text-[11px] flex items-center justify-center gap-1 transition-all ${
+                  abaAjusteCarrinho === 'deslocamento'
+                    ? 'bg-orange-500 text-zinc-950 shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <span>🛵 Taxa Deslocamento</span>
+                {taxaDeslocamentoValor > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-zinc-950 text-emerald-400 text-[9px] font-black">
+                    +R${taxaDeslocamentoValor.toFixed(0)}
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAbaAjusteCarrinho('desconto')}
+                className={`py-1.5 px-2 rounded-lg font-black text-[11px] flex items-center justify-center gap-1 transition-all ${
+                  abaAjusteCarrinho === 'desconto'
+                    ? 'bg-orange-500 text-zinc-950 shadow-sm'
+                    : 'text-zinc-400 hover:text-zinc-200'
+                }`}
+              >
+                <span>🏷️ Desconto</span>
+                {descontoValor > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-zinc-950 text-orange-400 text-[9px] font-black">
+                    -R${descontoValor.toFixed(0)}
+                  </span>
+                )}
+              </button>
             </div>
+
+            {abaAjusteCarrinho === 'deslocamento' ? (
+              <div className="bg-zinc-950 px-2.5 py-2 rounded-xl border border-zinc-800 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-bold text-zinc-300 text-xs">🛵 Taxa de Deslocamento (R$):</span>
+                  <div className="flex items-center gap-1">
+                    <span className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-orange-400 font-bold rounded-lg shrink-0 text-xs">
+                      R$
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.5"
+                      value={taxaDeslocamentoInput || ''}
+                      onChange={(e) => setTaxaDeslocamentoInput(parseFloat(e.target.value) || 0)}
+                      placeholder="0,00"
+                      className="w-20 sm:w-24 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-1 text-xs text-zinc-100 font-black text-right focus:border-orange-500 outline-none"
+                    />
+                  </div>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[3, 5, 7, 10, 15].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setTaxaDeslocamentoInput(val)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-black border transition-all ${
+                        taxaDeslocamentoInput === val
+                          ? 'bg-orange-500 text-zinc-950 border-orange-500'
+                          : 'bg-zinc-900 border-zinc-800 text-zinc-300 hover:border-orange-500/50'
+                      }`}
+                    >
+                      +R$ {val}
+                    </button>
+                  ))}
+                  {taxaDeslocamentoInput > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setTaxaDeslocamentoInput(0)}
+                      className="px-2 py-1 rounded-lg text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30 ml-auto"
+                    >
+                      Limpar
+                    </button>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between bg-zinc-950 px-2.5 py-2 rounded-xl border border-zinc-800">
+                <span className="font-bold text-zinc-400 text-xs">🏷️ Desconto na Venda:</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setTipoDesconto(tipoDesconto === 'valor' ? 'porcentagem' : 'valor')}
+                    className="px-2 py-0.5 bg-zinc-800 border border-zinc-700 text-orange-400 font-bold rounded-lg shrink-0 text-xs"
+                  >
+                    {tipoDesconto === 'valor' ? 'R$' : '%'}
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.5"
+                    value={descontoInput || ''}
+                    onChange={(e) => setDescontoInput(parseFloat(e.target.value) || 0)}
+                    placeholder="0"
+                    className="w-20 sm:w-24 bg-zinc-900 border border-zinc-800 rounded-xl px-2 py-1 text-xs text-zinc-200 text-right focus:border-orange-500 outline-none"
+                  />
+                </div>
+              </div>
+            )}
 
             {/* Quadro de Resumo de Totais */}
             <div className="bg-zinc-950 p-2.5 rounded-xl border border-zinc-800 space-y-1 font-semibold">
               <div className="flex justify-between text-zinc-400 text-xs">
-                <span>Subtotal:</span>
+                <span>Subtotal Produtos:</span>
                 <span className="text-zinc-200">R$ {subtotal.toFixed(2)}</span>
               </div>
+              {taxaDeslocamentoValor > 0 && (
+                <div className="flex justify-between text-emerald-400 text-xs font-bold">
+                  <span>🛵 Taxa de Deslocamento:</span>
+                  <span>+ R$ {taxaDeslocamentoValor.toFixed(2)}</span>
+                </div>
+              )}
               {descontoValor > 0 && (
                 <div className="flex justify-between text-orange-400 text-xs">
                   <span>Desconto aplicado:</span>
@@ -1192,7 +1300,7 @@ export const Pdv010: React.FC<Pdv010Props> = ({
               {/* Tabela de Produtos Vendidos */}
               <div className="space-y-1.5 pt-1">
                 <span className="text-[10px] font-bold text-zinc-400 uppercase block border-b border-zinc-800 pb-1">Produtos Vendidos</span>
-                {vendaConcluida.produtos.map((p, idx) => (
+                {vendaConcluida.produtos.filter(p => p.produto_id !== 'taxa-deslocamento').map((p, idx) => (
                   <div key={idx} className="flex justify-between items-center text-zinc-300 text-[11px]">
                     <div className="break-words whitespace-normal pr-2">
                       <span className="font-bold text-zinc-100">{p.quantidade}x</span> {p.nome}
@@ -1202,12 +1310,23 @@ export const Pdv010: React.FC<Pdv010Props> = ({
                 ))}
               </div>
 
-              {/* Resumo dos Valores e Desconto */}
+              {/* Resumo dos Valores, Taxa de Deslocamento e Desconto */}
               <div className="pt-2 border-t border-zinc-800 space-y-1 font-semibold">
                 <div className="flex justify-between text-zinc-400">
                   <span>Subtotal:</span>
                   <span>R$ {vendaConcluida.subtotal.toFixed(2)}</span>
                 </div>
+
+                {(() => {
+                  const itemTaxa = (vendaConcluida.produtos || []).find(p => p.produto_id === 'taxa-deslocamento');
+                  const valorTaxa = vendaConcluida.taxa_deslocamento || itemTaxa?.subtotal || 0;
+                  return valorTaxa > 0 ? (
+                    <div className="flex justify-between text-emerald-400 font-bold">
+                      <span>🛵 Taxa de Deslocamento:</span>
+                      <span>+ R$ {valorTaxa.toFixed(2)}</span>
+                    </div>
+                  ) : null;
+                })()}
 
                 {vendaConcluida.desconto_valor > 0 && (
                   <div className="flex justify-between text-orange-400">
