@@ -115,7 +115,10 @@ export const Dashboard010: React.FC<Dashboard010Props> = ({
     const itens = Array.isArray(v.produtos) 
       ? v.produtos 
       : (typeof v.produtos === 'string' ? (() => { try { return JSON.parse(v.produtos); } catch { return []; } })() : []);
-    return acc + itens.reduce((pAcc: number, p: any) => pAcc + (p.quantidade || 0), 0);
+    return acc + itens.reduce((pAcc: number, p: any) => {
+      if (p?.produto_id === 'taxa-deslocamento' || String(p?.produto_id || '').startsWith('parcial-')) return pAcc;
+      return pAcc + (p.quantidade || 0);
+    }, 0);
   }, 0);
 
   const produtosEstoqueBaixo = produtos.filter(p => p.quantidade > 0 && p.quantidade <= p.estoque_minimo);
@@ -129,7 +132,7 @@ export const Dashboard010: React.FC<Dashboard010Props> = ({
         ? v.produtos 
         : (typeof v.produtos === 'string' ? (() => { try { return JSON.parse(v.produtos); } catch { return []; } })() : []);
       itens.forEach(p => {
-        if (!p) return;
+        if (!p || p.produto_id === 'taxa-deslocamento' || String(p.produto_id || '').startsWith('parcial-')) return;
         const key = p.produto_id || p.nome;
         const ex = mapa.get(key);
         if (ex) {

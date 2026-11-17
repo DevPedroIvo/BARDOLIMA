@@ -369,6 +369,7 @@ export const supabaseService = {
       const mapped: Venda010[] = data.map(v => {
         const prods = safeParseJson(v.produtos, []);
         const pags = safeParseJson(v.pagamentos, []);
+        const itemTaxa = Array.isArray(prods) ? prods.find((p: any) => p?.produto_id === 'taxa-deslocamento') : null;
 
         return {
           id: String(v.id),
@@ -383,6 +384,7 @@ export const supabaseService = {
           subtotal: Number(v.subtotal) || 0,
           desconto_valor: Number(v.desconto_valor) || 0,
           desconto_porcentagem: Number(v.desconto_porcentagem) || 0,
+          taxa_deslocamento: itemTaxa ? Number(itemTaxa.subtotal) || 0 : undefined,
           total: Number(v.total) || 0,
           forma_pagamento: v.forma_pagamento || 'Pix',
           pagamentos: Array.isArray(pags) ? pags : [],
@@ -590,8 +592,8 @@ export const supabaseService = {
       total: venda.total || 0,
       forma_pagamento: venda.forma_pagamento || 'Pix',
       pagamentos: typeof venda.pagamentos === 'string' ? venda.pagamentos : JSON.stringify(venda.pagamentos || []),
-      parcelas_credito: venda.parcelas_credito,
-      valor_recebido: venda.valor_recebido,
+      parcelas_credito: venda.parcelas_credito ?? null,
+      valor_recebido: venda.valor_recebido ?? null,
       troco: venda.troco || 0,
       status: venda.status || 'Concluída'
     }));
@@ -803,18 +805,18 @@ export const supabaseService = {
       data: caixa.data,
       status: caixa.status || 'Aberto',
       usuario_abertura: caixa.usuario_abertura || 'admin',
-      usuario_fechamento: caixa.usuario_fechamento,
-      hora_abertura: caixa.hora_abertura,
-      hora_fechamento: caixa.hora_fechamento,
+      usuario_fechamento: caixa.usuario_fechamento ?? null,
+      hora_abertura: caixa.hora_abertura ?? null,
+      hora_fechamento: caixa.hora_fechamento ?? null,
       valor_inicial: caixa.valor_inicial || 0,
       valor_vendas: caixa.valor_vendas || 0,
       valor_entradas: caixa.valor_entradas || 0,
       valor_saidas: caixa.valor_saidas || 0,
       valor_despesas: caixa.valor_despesas || 0,
       saldo_esperado: caixa.saldo_esperado || 0,
-      valor_informado: caixa.valor_informado,
-      diferenca: caixa.diferenca,
-      observacao: caixa.observacao,
+      valor_informado: caixa.valor_informado ?? null,
+      diferenca: caixa.diferenca ?? null,
+      observacao: caixa.observacao ?? null,
       movimentacoes: typeof caixa.movimentacoes === 'string' ? caixa.movimentacoes : JSON.stringify(caixa.movimentacoes || [])
     }));
 
@@ -899,12 +901,12 @@ export const supabaseService = {
     const payload = contas.map(conta => ({
       id: conta.id,
       cliente_nome: conta.cliente_nome,
-      venda_numero: conta.venda_numero,
+      venda_numero: conta.venda_numero ?? null,
       valor_total: conta.valor_total || 0,
       valor_recebido: conta.valor_recebido || 0,
       status: conta.status || 'Em Aberto',
       data_vencimento: conta.data_vencimento,
-      data_pagamento: conta.data_pagamento
+      data_pagamento: conta.data_pagamento ?? null
     }));
 
     try {

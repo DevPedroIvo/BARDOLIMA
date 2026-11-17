@@ -1347,6 +1347,7 @@ export function App() {
     // Estorno do estoque para a Unidade e Caixa proporcionalmente
     if (Array.isArray(targetVenda.produtos)) {
       targetVenda.produtos.forEach(item => {
+        if (!item.produto_id || item.produto_id === 'taxa-deslocamento' || String(item.produto_id).startsWith('parcial-')) return;
         const itemProd = produtos.find(p => p.id === item.produto_id);
         const isCaixa = itemProd && (itemProd.tipo_embalagem === 'Caixa' || itemProd.tipo_embalagem === 'Fardo' || itemProd.nome.toLowerCase().includes('caixa'));
         const uPorCx = itemProd?.unidades_por_caixa && itemProd.unidades_por_caixa > 1 ? itemProd.unidades_por_caixa : 1;
@@ -1420,6 +1421,7 @@ export function App() {
     // Se não estiver cancelada, estorna o estoque antes proporcionalmente
     if (targetVenda.status !== 'Cancelada' && Array.isArray(targetVenda.produtos)) {
       targetVenda.produtos.forEach(item => {
+        if (!item.produto_id || item.produto_id === 'taxa-deslocamento' || String(item.produto_id).startsWith('parcial-')) return;
         const itemProd = produtos.find(p => p.id === item.produto_id);
         const isCaixa = itemProd && (itemProd.tipo_embalagem === 'Caixa' || itemProd.tipo_embalagem === 'Fardo' || itemProd.nome.toLowerCase().includes('caixa'));
         const uPorCx = itemProd?.unidades_por_caixa && itemProd.unidades_por_caixa > 1 ? itemProd.unidades_por_caixa : 1;
@@ -1760,12 +1762,12 @@ export function App() {
   if (isLoadingData) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center p-6 text-zinc-100 transition-colors">
-        <div className="w-16 h-16 rounded-2xl overflow-hidden bg-zinc-900 border border-orange-500/40 p-1 shadow-2xl shadow-orange-500/20 mb-4 animate-pulse">
-          <img src="/logo_icon.png" alt="010 Distribuidora" className="w-full h-full object-cover rounded-xl" />
+        <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/95 border border-blue-400/40 p-1.5 shadow-2xl shadow-blue-500/20 mb-4 animate-pulse flex items-center justify-center">
+          <img src="/logo_icon.png" alt="Bar do Lima" className="w-full h-full object-contain rounded-xl" />
         </div>
         <div className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 px-5 py-3 rounded-2xl shadow-2xl">
           <div className="w-5 h-5 border-3 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
-          <span className="text-xs font-black tracking-wider uppercase text-zinc-200">Sincronizando com Supabase...</span>
+          <span className="text-xs font-black tracking-wider uppercase text-zinc-200">Sincronizando Bar do Lima...</span>
         </div>
       </div>
     );
@@ -1819,25 +1821,28 @@ export function App() {
         </div>
       )}
 
-      {/* Sidebar 010 Distribuidora */}
+      {/* Sidebar Bar do Lima */}
       <Sidebar010
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         notificacoesNaoLidas={notificacoesNaoLidas}
         contasAbertasCount={contasComandas.filter(c => c.status === 'ABERTA').length}
+        isCaixaAberto={caixas.some(c => c.status === 'Aberto')}
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Container */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Header 010 Distribuidora */}
+        {/* Header Bar do Lima */}
         <Header010
           activeTab={activeTab}
           isOnline={isOnline}
           isSynced={isSynced}
           notificacoesNaoLidas={notificacoesNaoLidas}
           userSession={userSession}
+          isCaixaAberto={caixas.some(c => c.status === 'Aberto')}
+          onSwitchUser={(newSession) => setUserSession(newSession)}
           onNavigate={setActiveTab}
           onLogout={async () => {
             if (userSession) {

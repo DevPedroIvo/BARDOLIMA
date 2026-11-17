@@ -241,6 +241,7 @@ export const Historico010: React.FC<Historico010Props> = ({
           <div class="line"></div>
           <table>
             <tr><td>Subtotal:</td><td class="right">R$ ${(venda.subtotal || venda.total).toFixed(2)}</td></tr>
+            ${venda.taxa_deslocamento ? `<tr><td>Taxa Desloc.:</td><td class="right">+ R$ ${venda.taxa_deslocamento.toFixed(2)}</td></tr>` : ''}
             ${venda.desconto_valor ? `<tr><td>Desconto:</td><td class="right">- R$ ${venda.desconto_valor.toFixed(2)}</td></tr>` : ''}
             <tr class="bold" style="font-size: 14px;"><td>TOTAL:</td><td class="right">R$ ${venda.total.toFixed(2)}</td></tr>
             <tr><td>Pagamento:</td><td class="right">${venda.forma_pagamento}</td></tr>

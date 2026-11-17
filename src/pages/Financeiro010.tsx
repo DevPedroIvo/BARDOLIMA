@@ -223,6 +223,7 @@ export const Financeiro010: React.FC<Financeiro010Props> = ({
     const mapa: Record<string, { nome: string; quantidade: number }> = {};
     vendasMesAtual.forEach(v => {
       (v.produtos || []).forEach(p => {
+        if (p.produto_id === 'taxa-deslocamento' || String(p.produto_id || '').startsWith('parcial-')) return;
         const key = p.nome.trim();
         if (!mapa[key]) {
           mapa[key] = { nome: p.nome, quantidade: 0 };
