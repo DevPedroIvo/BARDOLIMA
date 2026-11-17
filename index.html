@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/logo_icon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon.png" />
+    <link rel="shortcut icon" href="/logo_icon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/logo_icon.png" />
+    <link rel="apple-touch-icon" href="/logo_icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Bar do Lima" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="screen-orientation" content="portrait" />
+    <meta name="x5-orientation" content="portrait" />
+    <meta property="og:title" content="Bar do Lima — Sistema de Gestão e Vendas" />
+    <meta property="og:image" content="/logo.jpg" />
+    <script>
+      (function() {
+        try {
+          var saved = localStorage.getItem('010_config_sistema');
+          if (saved) {
+            var parsed = JSON.parse(saved);
+            if (parsed.tema === 'azul') {
+              document.documentElement.classList.add('theme-blue');
+              document.documentElement.classList.remove('theme-dark', 'theme-light');
+              return;
+            }
+            if (parsed.tema === 'claro') {
+              document.documentElement.classList.add('theme-light');
+              document.documentElement.classList.remove('theme-dark', 'theme-blue');
+              return;
+            }
+          }
+        } catch(e) {}
+        document.documentElement.classList.add('theme-dark');
+        document.documentElement.classList.remove('theme-light', 'theme-blue');
+      })();
+    </script>
+    <title>Bar do Lima — Sistema Comercial</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').catch(function() {});
+        });
+      }
+      try {
+        if (window.screen && window.screen.orientation && window.screen.orientation.lock) {
+          window.screen.orientation.lock('portrait').catch(function() {});
+        }
+      } catch(e) {}
+    </script>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+.env
+.env.*
+test_supabase.js
+.git_backup
+*.cjs
+backup_dados.json
+caixas_salvos.json
+last_user_input.txt
+vendas_recebidas.csv
+extrair_backup.js
+importar_dados_novo_supabase.js
+migration_completa_novo_supabase.sql
+exportar_dados_banco_antigo.sql
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
